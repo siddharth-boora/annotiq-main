@@ -183,7 +183,15 @@ ${active.pdfText.slice(0, 15000)}`;
       <style>{CSS}</style>
       {/* Nav */}
       <div style={{ height: 52, borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", padding: "0 24px", background: SURF, position: "sticky", top: 0, zIndex: 50 }}>
-        <span style={{ color: WHITE, fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px" }}>annotiq</span>
+        {/* logo image replaces the text "annotiq"; place your logo file at /public/logo.png */}
+        <img
+          src="/logo.png"
+          alt="Logo"
+          style={{ height: 32, objectFit: "contain" }}
+          onError={e => { /* fallback to text if image missing */ e.target.style.display = 'none'; }}
+        />
+        {/* accessibility: include hidden text so screen readers still see a title */}
+        <span className="sr-only">Annotiq</span>
       </div>
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px" }}>
         {/* Upload */}

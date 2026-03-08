@@ -1,13 +1,15 @@
 // ── ChatGPT dark theme ────────────────────────────────────────────────────────
-export const BG     = "#212121";
-export const SURF   = "#171717";
-export const PANEL  = "#2f2f2f";
-export const BORDER = "#3f3f3f";
-export const TEXT   = "#ececec";
-export const MUTED  = "#8e8ea0";
+// theme colours tuned to match the new logo (white on black) -> darker palette
+export const BG     = "#000000";        // pure black background
+export const SURF   = "#0d0d0d";        // slightly lighter surface layer
+export const PANEL  = "#1a1a1a";        // panels are a dark grey-black
+export const BORDER = "#333333";        // subtle border colour
+export const TEXT   = "#ffffff";        // white text for contrast
+export const MUTED  = "#888888";        // muted grey for secondary text
 export const WHITE  = "#ffffff";
-export const PINK   = "#ff6b9d";
-export const PINK_BG= "rgba(255,107,157,0.18)";
+// accent colour – since the logo is monochrome, we use pure white accents
+export const PINK   = "#ffffff";
+export const PINK_BG= "rgba(255,255,255,0.18)";
 export const USER_BUBBLE = "#2f2f2f";
 export const AI_BUBBLE   = "#1a1a1a";
 

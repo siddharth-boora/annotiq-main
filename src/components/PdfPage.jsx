@@ -46,6 +46,7 @@ export default function PdfPage({ pdfDoc, pageNum, scale, highlights, containerW
         tlDiv.innerHTML = "";
         tlDiv.style.width  = Math.floor(viewport.width)  + "px";
         tlDiv.style.height = Math.floor(viewport.height) + "px";
+        tlDiv.style.setProperty('--scale-factor', fitScale);
 
         const tc = await page.getTextContent();
         if (dead) return;

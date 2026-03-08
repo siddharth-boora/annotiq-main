@@ -57,7 +57,7 @@ export default function Annotiq() {
   const handleDividerDrag = useCallback(clientX => {
     if (!bodyRef.current) return;
     const r   = bodyRef.current.getBoundingClientRect();
-    const pct = Math.min(76, Math.max(24, ((clientX - r.left) / r.width) * 100));
+    const pct = Math.min(100, Math.max(0, ((clientX - r.left) / r.width) * 100));
     setSplitPct(pct);
   }, []);
 
@@ -76,16 +76,14 @@ export default function Annotiq() {
     const buf  = await file.arrayBuffer();
     const doc  = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
 
-    let full = "";
-    for (let p = 1; p <= doc.numPages; p++) {
-      const pg = await doc.getPage(p);
-      const ct = await pg.getTextContent();
-      full += `\n\n[Page ${p}]\n` + ct.items.map(it => it.str).join(" ");
-    }
+    const pg = await doc.getPage(1);
+    const vp = pg.getViewport({ scale: 1 });
+    const pageWidth = vp.width;
 
     const sess = {
       id: Date.now(), name,
-      pdfDoc: doc, pdfPages: doc.numPages, pdfText: full.trim(),
+      pdfDoc: doc, pdfPages: doc.numPages, pdfText: "",
+      pageWidth,
       lastOpened: Date.now(),
       messages: [],
     };
@@ -107,48 +105,9 @@ export default function Annotiq() {
     setInput(""); setAiLoading(true); setActiveHl([]);
 
     try {
-      const apiMsgs = [];
-      for (const m of newMsgs) {
-        if (m.role !== "user" && m.role !== "assistant") continue;
-        if (apiMsgs.length === 0 && m.role === "assistant") continue;
-        const last = apiMsgs[apiMsgs.length - 1];
-        if (last && last.role === m.role) { last.content += "\n" + m.text; continue; }
-        apiMsgs.push({ role: m.role, content: m.text });
-      }
-      if (!apiMsgs.length || apiMsgs[apiMsgs.length - 1].role !== "user")
-        throw new Error("Conversation state error — please try again.");
-
-      const system = `You are a research assistant for the document titled "${active.name}".
-Answer using ONLY the document content. Be concise. Use **bold** for key terms.
-
-After your answer output EXACTLY on a new line:
-SOURCES: phrase one, phrase two, phrase three
-
-Source phrase rules:
-- EXACT verbatim copy from document (8-16 consecutive words)
-- Character-for-character match — they will be searched in the PDF
-- No quotes, comma-separated, max 4 phrases
-
-DOCUMENT:
-${active.pdfText.slice(0, 15000)}`;
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1024, system, messages: apiMsgs }),
-      });
-
-      if (!res.ok) { const t = await res.text().catch(() => res.statusText); throw new Error(`API ${res.status}: ${t}`); }
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-
-      let raw = data.content?.[0]?.text?.trim() || "No response.";
-      let sources = [];
-      const sm = raw.match(/\n?SOURCES:\s*(.+)$/ms);
-      if (sm) {
-        sources = sm[1].split(",").map(s => s.trim().replace(/^["']|["']$/g, "")).filter(s => s.length > 5);
-        raw = raw.slice(0, sm.index).trim();
-      }
+      // Backend removed temporarily
+      const raw = "Backend integration removed. Chat functionality disabled for now.";
+      const sources = [];
       setActiveHl(sources);
       const final = [...newMsgs, { role: "assistant", text: raw, sources }];
       updateMessages(activeId, final);
@@ -275,7 +234,7 @@ ${active.pdfText.slice(0, 15000)}`;
               onBlur={() => commitRename(activeId)}
               onKeyDown={e => { if (e.key === "Enter") commitRename(activeId); if (e.key === "Escape") setRenamingId(null); }}
               autoFocus
-              style={{ background: "none", border: "none", color: TEXT, fontSize: 13, outline: "none", width: "100%" }}
+              style={{ background: "none", border: "none", color: TEXT, fontSize: 16, fontWeight: 500, outline: "none", width: "100%" }}
             />
           </div>
         ) : (
@@ -289,21 +248,21 @@ ${active.pdfText.slice(0, 15000)}`;
 
         {/* Zoom controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Btn onClick={() => setScale(s => Math.max(0.2, +(s - 0.1).toFixed(1)))} style={{ padding: "5px 9px", fontSize: 15 }}>−</Btn>
-          <span style={{ color: MUTED, fontSize: 12, minWidth: 44, textAlign: "center", userSelect: "none" }}>{Math.round(scale * 100)}%</span>
-          <Btn onClick={() => setScale(s => Math.min(2.0, +(s + 0.1).toFixed(1)))} style={{ padding: "5px 9px", fontSize: 15 }}>+</Btn>
+          <Btn onClick={() => setScale(s => Math.max(0.2, +(s - 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18 }}>−</Btn>
+          <span style={{ color: MUTED, fontSize: 14, minWidth: 50, textAlign: "center", userSelect: "none" }}>{Math.round(scale * 100)}%</span>
+          <Btn onClick={() => setScale(s => Math.min(2.0, +(s + 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18 }}>+</Btn>
         </div>
 
-        <Btn onClick={() => fileInputRef.current?.click()}>New PDF</Btn>
+        <Btn onClick={() => fileInputRef.current?.click()} style={{ padding: "8px 16px", fontSize: 14 }}>New Document</Btn>
         <input ref={fileInputRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handleFile} />
       </div>
 
       {/* PDF + divider + Chat */}
-      <div ref={bodyRef} style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      <div ref={bodyRef} style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
 
         {/* PDF pane — fit-to-width, black bg, pages centered with padding */}
         <div ref={pdfPaneRef}
-          style={{ width: `${splitPct}%`, flexShrink: 0, overflow: "auto", background: "#111", padding: "24px 0 24px 0" }}>
+          style={{ width: `${splitPct}%`, flexShrink: 0, overflow: "auto", background: "#111", padding: "24px 0 24px 0", minWidth: scale > 1 ? `${scale * active.pageWidth + 48}px` : undefined }}>
           {/* inner wrapper centres pages when smaller than pane, allows overflow when larger */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "fit-content", margin: "0 auto", padding: "0 24px" }}>
           {activeHl.length > 0 && (
@@ -319,7 +278,7 @@ ${active.pdfText.slice(0, 15000)}`;
                   pageNum={i + 1}
                   scale={scale}
                   highlights={activeHl}
-                  containerWidth={Math.max(100, pdfPaneW - 48)}
+                  containerWidth={Math.max(100, Math.max(pdfPaneW - 48, scale * active.pageWidth))}
                 />
               ))
             : <div style={{ color: MUTED, paddingTop: 60 }}>Loading…</div>
@@ -389,6 +348,18 @@ ${active.pdfText.slice(0, 15000)}`;
           </div>
         </div>
       </div>
+
+      {/* Toggle buttons */}
+      {splitPct < 5 && (
+        <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 30 }}>
+          <Btn onClick={() => setSplitPct(50)} style={{ padding: '8px', fontSize: 16, background: PANEL, border: `1px solid ${BORDER}` }}>▶</Btn>
+        </div>
+      )}
+      {splitPct > 95 && (
+        <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 30 }}>
+          <Btn onClick={() => setSplitPct(50)} style={{ padding: '8px', fontSize: 16, background: PANEL, border: `1px solid ${BORDER}` }}>◀</Btn>
+        </div>
+      )}
     </div>
   );
 }

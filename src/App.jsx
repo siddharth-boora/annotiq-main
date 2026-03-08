@@ -187,7 +187,8 @@ ${active.pdfText.slice(0, 15000)}`;
         <img
           src="/logo.png"
           alt="Logo"
-          style={{ height: 64, objectFit: "contain" }}
+          style={{ height: 64, objectFit: "contain", cursor: "pointer" }}
+          onClick={goHome}
         />
       </div>
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px" }}>
@@ -259,11 +260,12 @@ ${active.pdfText.slice(0, 15000)}`;
       <style>{CSS}</style>
 
       {/* Top bar */}
-      <div style={{ height: 52, flexShrink: 0, display: "flex", alignItems: "center", padding: "0 14px", gap: 10, background: "transparent" }}>
+      <div style={{ height: 78, flexShrink: 0, display: "flex", alignItems: "center", padding: "0 14px", gap: 10, background: "transparent", borderBottom: `1px solid ${BORDER}` }}>
         {/* Back button — same style as other buttons */}
-        <Btn onClick={goHome} style={{ padding: "5px 10px" }}>← Back</Btn>
-
-        <span style={{ color: BORDER, fontSize: 16 }}>/</span>
+        {/* logo clickable redirects home */}
+        <img src="/logo.png" alt="Logo" style={{ height: 48, objectFit: "contain", cursor: "pointer" }} onClick={goHome} />
+        {/* separator */}
+        <span style={{ color: BORDER, fontSize: 24, fontWeight: 600 }}>/</span>
 
         {/* Renameable title */}
         {renamingId === activeId ? (
@@ -278,14 +280,12 @@ ${active.pdfText.slice(0, 15000)}`;
           </div>
         ) : (
           <span onClick={e => startRename(e, active)} title="Click to rename"
-            style={{ color: MUTED, fontSize: 13, cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 260 }}
+            style={{ color: MUTED, fontSize: 16, fontWeight: 500, cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 260 }}
             onMouseEnter={e => e.currentTarget.style.color = TEXT}
             onMouseLeave={e => e.currentTarget.style.color = MUTED}>
             {active?.name}
           </span>
-        )}
-
-        <div style={{ flex: 1 }} />
+        )}        <div style={{ flex: 1 }} />
 
         {/* Zoom controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -334,8 +334,8 @@ ${active.pdfText.slice(0, 15000)}`;
 
           {/* Messages */}
           <div style={{ flex: 1, overflow: "auto" }}>
-            {messages.map((msg, i) => <ChatMsg key={i} msg={msg} animate={i === newMsgIdx} />)}
-            {aiLoading && (
+              {messages.map((msg, i) => <ChatMsg key={i} msg={msg} animate={i === newMsgIdx} />)}
+              {aiLoading && (
               <div className="msg-anim" style={{ padding: "18px 22px", borderBottom: `1px solid rgba(255,255,255,0.04)`, background: "rgba(255,255,255,0.03)", display: "flex", gap: 5, alignItems: "center" }}>
                 {[0,1,2].map(j => <div key={j} style={{ width: 6, height: 6, borderRadius: "50%", background: MUTED, animation: `blink 1.2s ${j*0.22}s ease-in-out infinite` }} />)}
               </div>
@@ -345,9 +345,9 @@ ${active.pdfText.slice(0, 15000)}`;
 
           {/* Empty state + suggestion chips */}
           {messages.length === 0 && !aiLoading && (
-            <div style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 22px 12px", gap: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: PANEL, border: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📄</div>
-              <div style={{ color: MUTED, fontSize: 13, textAlign: "center", lineHeight: 1.6 }}>Ask anything about this document</div>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 22px 12px", gap: 24 }}>
+              <div style={{ width: 64, height: 64, borderRadius: 16, background: PANEL, border: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>📄</div>
+              <div style={{ color: TEXT, fontSize: 18, fontWeight: 600, textAlign: "center", lineHeight: 1.6 }}>Ask anything about this document</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, justifyContent: "center" }}>
                 {["What is this about?", "Key findings?", "What methodology?", "Summarize conclusions"].map(p => (
                   <button key={p} onClick={() => setInput(p)}
@@ -361,7 +361,7 @@ ${active.pdfText.slice(0, 15000)}`;
 
           {/* Input — send button lives inside the box */}
           <div style={{ padding: "8px 16px 16px", flexShrink: 0, borderTop: `1px solid ${BORDER}` }}>
-            <div style={{ background: PANEL, border: `1px solid ${BORDER}`, borderRadius: 22, padding: "9px 12px 9px 16px", transition: "border-color 0.15s", display: "flex", alignItems: "flex-end", gap: 8 }}
+            <div style={{ background: PANEL, border: "none", borderRadius: 22, padding: "9px 12px 9px 16px", transition: "border-color 0.15s", display: "flex", alignItems: "center", gap: 8 }}
               onFocusCapture={e => e.currentTarget.style.borderColor = "#777"}
               onBlurCapture={e  => e.currentTarget.style.borderColor = BORDER}>
               <textarea
@@ -370,7 +370,7 @@ ${active.pdfText.slice(0, 15000)}`;
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Ask anything about this document…"
                 rows={1}
-                style={{ flex: 1, background: "none", border: "none", color: TEXT, fontSize: 14, resize: "none", outline: "none", lineHeight: 1.6, maxHeight: 160, overflow: "auto", padding: 0, textAlign: "left" }}
+                style={{ flex: 1, background: "none", border: "none", color: TEXT, fontSize: 14, resize: "none", outline: "none", lineHeight: 1.6, maxHeight: 160, overflow: "auto", padding: "8px 0", textAlign: "left" }}
               />
               <button onClick={handleSend} disabled={aiLoading || !input.trim()}
                 style={{

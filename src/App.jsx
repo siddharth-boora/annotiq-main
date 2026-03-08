@@ -188,10 +188,7 @@ ${active.pdfText.slice(0, 15000)}`;
           src="/logo.png"
           alt="Logo"
           style={{ height: 32, objectFit: "contain" }}
-          onError={e => { /* fallback to text if image missing */ e.target.style.display = 'none'; }}
         />
-        {/* accessibility: include hidden text so screen readers still see a title */}
-        <span className="sr-only">Annotiq</span>
       </div>
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px" }}>
         {/* Upload */}

@@ -80,7 +80,7 @@ export default function PdfPage({ pdfDoc, pageNum, scale, highlights, containerW
     <div style={{
       position: "relative", marginBottom: 12,
       boxShadow: "0 4px 28px rgba(0,0,0,0.8)",
-      lineHeight: 0, background: "#fff",
+      lineHeight: 0, background: "transparent",
       display: "inline-block",  // shrinks to canvas size; pane centres it → natural black space
     }}>
       <canvas ref={canvasRef} style={{ display: "block" }} />

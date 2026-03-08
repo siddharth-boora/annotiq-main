@@ -182,12 +182,12 @@ ${active.pdfText.slice(0, 15000)}`;
     <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "system-ui,-apple-system,sans-serif" }}>
       <style>{CSS}</style>
       {/* Nav */}
-      <div style={{ height: 52, borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", padding: "0 24px", background: SURF, position: "sticky", top: 0, zIndex: 50 }}>
+      <div style={{ height: 104, display: "flex", alignItems: "center", padding: "0 24px", background: "transparent", position: "sticky", top: 0, zIndex: 50 }}>
         {/* logo image replaces the text "annotiq"; place your logo file at /public/logo.png */}
         <img
           src="/logo.png"
           alt="Logo"
-          style={{ height: 32, objectFit: "contain" }}
+          style={{ height: 64, objectFit: "contain" }}
         />
       </div>
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px" }}>
@@ -259,7 +259,7 @@ ${active.pdfText.slice(0, 15000)}`;
       <style>{CSS}</style>
 
       {/* Top bar */}
-      <div style={{ height: 52, flexShrink: 0, display: "flex", alignItems: "center", padding: "0 14px", gap: 10, borderBottom: `1px solid ${BORDER}`, background: SURF }}>
+      <div style={{ height: 52, flexShrink: 0, display: "flex", alignItems: "center", padding: "0 14px", gap: 10, background: "transparent" }}>
         {/* Back button — same style as other buttons */}
         <Btn onClick={goHome} style={{ padding: "5px 10px" }}>← Back</Btn>
 

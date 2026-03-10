@@ -20,7 +20,7 @@ export default function Annotiq() {
   const [input,      setInput]      = useState("");
   const [aiLoading,  setAiLoading]  = useState(false);
   const [newMsgIdx,  setNewMsgIdx]  = useState(-1);
-  const [splitPct,   setSplitPct]   = useState(50);
+  const [splitPct,   setSplitPct]   = useState(60);
   const [pdfPaneW,   setPdfPaneW]   = useState(0);
   const [renamingId, setRenamingId] = useState(null);
   const [renameVal,  setRenameVal]  = useState("");
@@ -53,13 +53,6 @@ export default function Annotiq() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [view, activeId]);
-
-  const handleDividerDrag = useCallback(clientX => {
-    if (!bodyRef.current) return;
-    const r   = bodyRef.current.getBoundingClientRect();
-    const pct = Math.min(100, Math.max(0, ((clientX - r.left) / r.width) * 100));
-    setSplitPct(pct);
-  }, []);
 
   const updateMessages = useCallback((id, msgs) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, messages: msgs, lastOpened: Date.now() } : s));
@@ -246,13 +239,6 @@ export default function Annotiq() {
           </span>
         )}        <div style={{ flex: 1 }} />
 
-        {/* Zoom controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Btn onClick={() => setScale(s => Math.max(0.25, +(s - 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18, opacity: scale <= 0.25 ? 0.3 : 1 }}>−</Btn>
-          <span style={{ color: MUTED, fontSize: 14, minWidth: 50, textAlign: "center", userSelect: "none" }}>{Math.round(scale * 100)}%</span>
-          <Btn onClick={() => setScale(s => Math.min(1.0, +(s + 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18, opacity: scale >= 1 ? 0.3 : 1 }}>+</Btn>
-        </div>
-
         <Btn onClick={() => fileInputRef.current?.click()} style={{ padding: "8px 16px", fontSize: 14 }}>New Document</Btn>
         <input ref={fileInputRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={handleFile} />
       </div>
@@ -262,7 +248,7 @@ export default function Annotiq() {
 
         {/* PDF pane — fit-to-width, black bg, pages centered with padding */}
         <div ref={pdfPaneRef}
-          style={{ width: `${splitPct}%`, flexShrink: 0, overflow: "auto", background: "#111", padding: "24px 0 24px 0", minWidth: scale > 1 ? `${scale * active.pageWidth + 48}px` : undefined }}>
+          style={{ width: "60%", flexShrink: 0, overflow: "auto", background: "#111", padding: "24px 0 24px 0" }}>
           {/* inner wrapper centres pages when smaller than pane, allows overflow when larger */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "fit-content", margin: "0 auto", padding: "0 24px" }}>
           {activeHl.length > 0 && (
@@ -286,10 +272,8 @@ export default function Annotiq() {
           </div>
         </div>
 
-        <Divider onDrag={handleDividerDrag} />
-
         {/* Chat pane */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: BG, minWidth: 0 }}>
+        <div style={{ width: "40%", display: "flex", flexDirection: "column", overflow: "hidden", background: BG, minWidth: 0 }}>
 
           {/* Messages */}
           <div style={{ flex: 1, overflow: "auto" }}>
@@ -349,17 +333,6 @@ export default function Annotiq() {
         </div>
       </div>
 
-      {/* Toggle buttons */}
-      {splitPct < 5 && (
-        <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 30 }}>
-          <Btn onClick={() => setSplitPct(50)} style={{ padding: '8px', fontSize: 16, background: PANEL, border: `1px solid ${BORDER}` }}>▶</Btn>
-        </div>
-      )}
-      {splitPct > 95 && (
-        <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 30 }}>
-          <Btn onClick={() => setSplitPct(50)} style={{ padding: '8px', fontSize: 16, background: PANEL, border: `1px solid ${BORDER}` }}>◀</Btn>
-        </div>
-      )}
     </div>
   );
 }

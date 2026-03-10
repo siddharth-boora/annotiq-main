@@ -16,6 +16,7 @@ export default function Annotiq() {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [dragOver,   setDragOver]   = useState(false);
   const [scale,      setScale]      = useState(1.0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [activeHl,   setActiveHl]   = useState([]);
   const [input,      setInput]      = useState("");
   const [aiLoading,  setAiLoading]  = useState(false);
@@ -54,6 +55,24 @@ export default function Annotiq() {
     return () => ro.disconnect();
   }, [view, activeId]);
 
+  // Track current page on scroll
+  useEffect(() => {
+    const el = pdfPaneRef.current; if (!el) return;
+    const handleScroll = () => {
+      const pages = el.querySelectorAll('[data-page-num]');
+      let currentPageNum = 1;
+      pages.forEach(page => {
+        const rect = page.getBoundingClientRect();
+        if (rect.top < el.clientHeight / 2) {
+          currentPageNum = parseInt(page.getAttribute('data-page-num'), 10);
+        }
+      });
+      setCurrentPage(currentPageNum);
+    };
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [view, activeId]);
+
   const updateMessages = useCallback((id, msgs) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, messages: msgs, lastOpened: Date.now() } : s));
   }, []);
@@ -82,6 +101,7 @@ export default function Annotiq() {
     };
     setSessions(prev => [...prev, sess]);
     setActiveId(sess.id);
+    setCurrentPage(1);
     setScale(1.0);
     setLoadingPdf(false); setView("reader");
   }, [pdfjsLib]);
@@ -166,7 +186,7 @@ export default function Annotiq() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,180px))", gap: 14 }}>
               {[...sessions].reverse().map(sess => (
                 <div key={sess.id}
-                  onClick={() => { setActiveId(sess.id); setActiveHl([]); setNewMsgIdx(-1); setView("reader"); }}
+                  onClick={() => { setActiveId(sess.id); setCurrentPage(1); setActiveHl([]); setNewMsgIdx(-1); setView("reader"); }}
                   style={{ cursor: "pointer", borderRadius: 12, border: `1px solid ${BORDER}`, background: SURF, overflow: "hidden", transition: "border-color 0.15s, background 0.15s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "#666"; e.currentTarget.style.background = PANEL; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.background = SURF; }}
@@ -248,9 +268,13 @@ export default function Annotiq() {
 
         {/* PDF pane — fit-to-width, black bg, pages centered with padding */}
         <div ref={pdfPaneRef}
-          style={{ width: "60%", flexShrink: 0, overflow: "auto", background: "#111", padding: "24px 0 24px 0" }}>
+          style={{ width: "60%", flexShrink: 0, overflow: "auto", background: "#111", padding: "0 0 24px 0" }}>
+          {/* Page indicator at top */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "12px 0", background: "#111", borderBottom: `1px solid ${BORDER}`, position: "sticky", top: 0, zIndex: 10 }}>
+            <span style={{ color: TEXT, fontSize: 14, fontWeight: 500 }}>Page {currentPage} / {active?.pdfPages || 0}</span>
+          </div>
           {/* inner wrapper centres pages when smaller than pane, allows overflow when larger */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "fit-content", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "fit-content", margin: "0 auto", padding: "24px 24px 0 24px" }}>
           {activeHl.length > 0 && (
             <div style={{ background: PINK_BG, border: `1px solid rgba(255,107,157,0.35)`, borderRadius: 8, padding: "6px 14px", marginBottom: 14, display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "center" }}>
               <span style={{ color: PINK, fontSize: 12, fontWeight: 500 }}>✦ {activeHl.length} passage{activeHl.length !== 1 ? "s" : ""} highlighted in PDF</span>
@@ -258,14 +282,15 @@ export default function Annotiq() {
           )}
           {active?.pdfDoc && pdfPaneW > 0
             ? Array.from({ length: active.pdfPages }, (_, i) => (
-                <PdfPage
-                  key={i + 1}
-                  pdfDoc={active.pdfDoc}
-                  pageNum={i + 1}
-                  scale={scale}
-                  highlights={activeHl}
-                  containerWidth={Math.max(100, Math.max(pdfPaneW - 48, scale * active.pageWidth))}
-                />
+                <div key={i + 1} data-page-num={i + 1}>
+                  <PdfPage
+                    pdfDoc={active.pdfDoc}
+                    pageNum={i + 1}
+                    scale={scale}
+                    highlights={activeHl}
+                    containerWidth={Math.max(100, Math.max(pdfPaneW - 48, scale * active.pageWidth))}
+                  />
+                </div>
               ))
             : <div style={{ color: MUTED, paddingTop: 60 }}>Loading…</div>
           }

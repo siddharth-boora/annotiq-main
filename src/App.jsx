@@ -248,9 +248,9 @@ export default function Annotiq() {
 
         {/* Zoom controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Btn onClick={() => setScale(s => Math.max(0.2, +(s - 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18 }}>−</Btn>
+          <Btn onClick={() => setScale(s => Math.max(0.25, +(s - 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18, opacity: scale <= 0.25 ? 0.3 : 1 }}>−</Btn>
           <span style={{ color: MUTED, fontSize: 14, minWidth: 50, textAlign: "center", userSelect: "none" }}>{Math.round(scale * 100)}%</span>
-          <Btn onClick={() => setScale(s => Math.min(2.0, +(s + 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18 }}>+</Btn>
+          <Btn onClick={() => setScale(s => Math.min(1.0, +(s + 0.1).toFixed(1)))} style={{ padding: "8px 12px", fontSize: 18, opacity: scale >= 1 ? 0.3 : 1 }}>+</Btn>
         </div>
 
         <Btn onClick={() => fileInputRef.current?.click()} style={{ padding: "8px 16px", fontSize: 14 }}>New Document</Btn>
